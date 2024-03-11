@@ -2,10 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
 
     public class DataReader
     {
@@ -24,8 +22,12 @@
                 importedLines.Add(line);
             }
 
-            for (int i = 0; i <= importedLines.Count; i++)
+            for (int i = 0; i < importedLines.Count; i++)
             {
+                if (importedLines[i] == string.Empty)
+                {
+                    continue;
+                }
                 var importedLine = importedLines[i];
                 var values = importedLine.Split(';');
                 var importedObject = new ImportedObject();
@@ -35,13 +37,23 @@
                 importedObject.ParentName = values[3];
                 importedObject.ParentType = values[4];
                 importedObject.DataType = values[5];
-                importedObject.IsNullable = values[6];
+                try
+                {
+                    importedObject.IsNullable = values[6];
+                }catch
+                {
+
+                }
+                
                 ((List<ImportedObject>)ImportedObjects).Add(importedObject);
             }
 
             // clear and correct imported data
             foreach (var importedObject in ImportedObjects)
             {
+                if (importedObject.Type == null)
+                    continue;
+
                 importedObject.Type = importedObject.Type.Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper();
                 importedObject.Name = importedObject.Name.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
                 importedObject.Schema = importedObject.Schema.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
@@ -74,6 +86,9 @@
                     // print all database's tables
                     foreach (var table in ImportedObjects)
                     {
+                        if (table.ParentType == null)
+                            continue; 
+
                         if (table.ParentType.ToUpper() == database.Type)
                         {
                             if (table.ParentName == database.Name)
@@ -83,6 +98,9 @@
                                 // print all table's columns
                                 foreach (var column in ImportedObjects)
                                 {
+                                    if (column.ParentType == null)
+                                        continue;
+
                                     if (column.ParentType.ToUpper() == table.Type)
                                     {
                                         if (column.ParentName == table.Name)
